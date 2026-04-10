@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 <title>First / Then Visual Board</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -16,41 +19,54 @@
     --radius: 18px;
   }
 
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: var(--bg);
-    min-height: 100dvh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 16px;
     color: #222;
   }
 
+  /* ===== INPUT SCREEN ===== */
+  .input-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 24px;
+    padding-top: env(safe-area-inset-top, 20px);
+    padding-bottom: env(safe-area-inset-bottom, 20px);
+  }
+
+  .input-screen.hidden { display: none; }
+
   h1 {
-    font-size: 1.4rem;
+    font-size: 1.6rem;
     font-weight: 700;
-    margin-bottom: 12px;
+    margin-bottom: 20px;
     text-align: center;
   }
 
-  /* Input area */
   .input-area {
     width: 100%;
     max-width: 520px;
     background: var(--card-bg);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-    padding: 18px;
+    padding: 20px;
     margin-bottom: 18px;
   }
 
   .input-area label {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     font-weight: 600;
     color: #555;
     display: block;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
   }
 
   .input-row {
@@ -60,8 +76,8 @@
 
   .input-area input[type="text"] {
     flex: 1;
-    font-size: 1.1rem;
-    padding: 12px 14px;
+    font-size: 1.15rem;
+    padding: 14px 16px;
     border: 2px solid #ddd;
     border-radius: 12px;
     outline: none;
@@ -72,10 +88,10 @@
     border-color: var(--blue);
   }
 
-  .input-area button {
-    font-size: 1rem;
-    font-weight: 600;
-    padding: 12px 20px;
+  .input-area .go-btn {
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding: 14px 24px;
     border: none;
     border-radius: 12px;
     background: var(--blue);
@@ -85,148 +101,19 @@
     transition: background 0.2s;
   }
 
-  .input-area button:active { background: #1976D2; }
+  .input-area .go-btn:active { background: #1976D2; }
 
   .hint {
-    font-size: 0.78rem;
+    font-size: 0.8rem;
     color: #999;
-    margin-top: 8px;
-  }
-
-  /* Board */
-  .board {
-    width: 100%;
-    max-width: 520px;
-    display: none;
-    gap: 12px;
-  }
-
-  .board.visible {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-  }
-
-  .board-row {
-    display: flex;
-    gap: 12px;
-    align-items: stretch;
-  }
-
-  .card {
-    flex: 1;
-    background: var(--card-bg);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    text-align: center;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    border: 4px solid transparent;
-    transition: border-color 0.3s;
-  }
-
-  .card.first { border-color: var(--blue); }
-  .card.then  { border-color: var(--green); }
-
-  .card-header {
-    padding: 10px;
-    color: white;
-    font-size: 1.3rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-  }
-
-  .card.first .card-header { background: var(--blue); }
-  .card.then  .card-header { background: var(--green); }
-
-  .card-body {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 14px;
-    min-height: 180px;
-    position: relative;
-  }
-
-  .card-body img {
-    max-width: 100%;
-    max-height: 140px;
-    object-fit: contain;
-    border-radius: 8px;
-  }
-
-  .card-label {
     margin-top: 10px;
-    font-size: 1.2rem;
-    font-weight: 700;
-    text-transform: capitalize;
   }
-
-  .card.first .card-label { color: var(--blue); }
-  .card.then  .card-label { color: var(--green); }
-
-  .arrow-col {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2.2rem;
-    color: #bbb;
-    min-width: 36px;
-    flex-shrink: 0;
-  }
-
-  /* Loading spinner */
-  .spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #e0e0e0;
-    border-top: 4px solid var(--blue);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .no-img {
-    font-size: 3rem;
-    opacity: 0.3;
-  }
-
-  /* Fallback search link */
-  .fallback-link {
-    display: inline-block;
-    margin-top: 6px;
-    font-size: 0.72rem;
-    color: #999;
-    text-decoration: underline;
-    cursor: pointer;
-  }
-
-  /* Reset button */
-  .reset-btn {
-    margin-top: 16px;
-    padding: 12px 28px;
-    font-size: 1rem;
-    font-weight: 600;
-    border: 2px solid #ddd;
-    border-radius: 12px;
-    background: white;
-    cursor: pointer;
-    color: #555;
-    transition: all 0.2s;
-  }
-
-  .reset-btn:active { background: #eee; }
 
   /* Recent searches */
   .recent {
     width: 100%;
     max-width: 520px;
-    margin-top: 18px;
+    margin-top: 10px;
   }
 
   .recent h3 {
@@ -243,8 +130,8 @@
   }
 
   .recent-chip {
-    font-size: 0.82rem;
-    padding: 6px 14px;
+    font-size: 0.85rem;
+    padding: 8px 16px;
     background: white;
     border: 1px solid #ddd;
     border-radius: 20px;
@@ -254,7 +141,6 @@
 
   .recent-chip:active { background: #e3f2fd; }
 
-  /* Attribution */
   .attribution {
     margin-top: 24px;
     font-size: 0.7rem;
@@ -265,103 +151,300 @@
 
   .attribution a { color: #aaa; }
 
-  /* Custom image upload overlay */
-  .upload-overlay {
-    position: absolute;
-    bottom: 8px;
-    right: 8px;
+  /* ===== FULLSCREEN BOARD ===== */
+  .board-screen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: #ffffff;
+    flex-direction: column;
+    padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px) 0;
   }
 
-  .upload-btn {
-    width: 32px;
-    height: 32px;
+  .board-screen.visible {
+    display: flex;
+  }
+
+  /* Back button - small, top-left, unobtrusive */
+  .back-btn {
+    position: absolute;
+    top: calc(env(safe-area-inset-top, 8px) + 8px);
+    left: 10px;
+    z-index: 1001;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0,0,0,0.06);
+    color: #999;
+    font-size: 1.3rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .back-btn:active { background: rgba(0,0,0,0.12); }
+
+  /* Board fills entire screen */
+  .board-layout {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    gap: 0;
+    height: 100%;
+  }
+
+  /* Each card takes exactly half the screen */
+  .fs-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .fs-card-header {
+    padding: 14px 0;
+    text-align: center;
+    color: white;
+    font-size: 1.8rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    flex-shrink: 0;
+  }
+
+  .fs-card.first .fs-card-header { background: var(--blue); }
+  .fs-card.then  .fs-card-header { background: var(--green); }
+
+  .fs-card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    position: relative;
+  }
+
+  .fs-card.first { border-right: 3px solid #e0e0e0; }
+
+  .fs-card-body img {
+    max-width: 90%;
+    max-height: 55%;
+    object-fit: contain;
+  }
+
+  .fs-card-label {
+    margin-top: 12px;
+    font-size: 1.6rem;
+    font-weight: 800;
+    text-transform: capitalize;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  .fs-card.first .fs-card-label { color: var(--blue); }
+  .fs-card.then  .fs-card-label { color: var(--green); }
+
+  /* Arrow overlay between cards */
+  .fs-arrow {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    color: #888;
+    pointer-events: none;
+  }
+
+  /* Spinner */
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #e0e0e0;
+    border-top: 5px solid var(--blue);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .no-img {
+    font-size: 4rem;
+    opacity: 0.25;
+  }
+
+  .fallback-link {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: #aaa;
+    text-decoration: underline;
+  }
+
+  /* Upload button on fullscreen cards */
+  .fs-upload-overlay {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+  }
+
+  .fs-upload-btn {
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
     border: 1px solid #ddd;
-    background: #f9f9f9;
+    background: rgba(255,255,255,0.9);
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #999;
-    transition: all 0.2s;
   }
 
-  .upload-btn:hover { background: #e3f2fd; color: var(--blue); }
+  .fs-upload-btn:active { background: #e3f2fd; }
 
-  /* Responsive */
-  @media (max-width: 400px) {
-    .card-body { min-height: 140px; padding: 10px; }
-    .card-body img { max-height: 100px; }
-    .card-label { font-size: 1rem; }
-    .card-header { font-size: 1.1rem; }
-    .arrow-col { font-size: 1.8rem; min-width: 28px; }
+  /* === PORTRAIT: stack cards vertically === */
+  @media (orientation: portrait) {
+    .board-layout {
+      flex-direction: column;
+    }
+
+    .fs-card.first {
+      border-right: none;
+      border-bottom: 3px solid #e0e0e0;
+    }
+
+    .fs-card-header {
+      font-size: 1.6rem;
+      padding: 10px 0;
+    }
+
+    .fs-card-body img {
+      max-height: 50%;
+    }
+
+    .fs-card-label {
+      font-size: 1.4rem;
+    }
+
+    .fs-arrow {
+      width: 42px;
+      height: 42px;
+      font-size: 1.3rem;
+    }
+
+    /* Rotate arrow to point down in portrait */
+    .fs-arrow span {
+      display: inline-block;
+      transform: rotate(90deg);
+    }
+  }
+
+  /* === LANDSCAPE: side-by-side (already default) === */
+  @media (orientation: landscape) {
+    .fs-card-header {
+      font-size: 1.5rem;
+      padding: 8px 0;
+    }
+
+    .fs-card-body img {
+      max-height: 60%;
+    }
+
+    .fs-card-label {
+      font-size: 1.5rem;
+    }
+
+    .fs-arrow span {
+      display: inline-block;
+      transform: rotate(0deg);
+    }
   }
 </style>
 </head>
 <body>
 
-<h1>First / Then Board</h1>
+<!-- ===== INPUT SCREEN ===== -->
+<div class="input-screen" id="inputScreen">
+  <h1>First / Then Board</h1>
 
-<div class="input-area">
-  <label for="statement">Type your statement:</label>
-  <div class="input-row">
-    <input type="text" id="statement" placeholder="First eat, then play" autocomplete="off" />
-    <button id="goBtn" onclick="handleGo()">Go</button>
+  <div class="input-area">
+    <label for="statement">Type your statement:</label>
+    <div class="input-row">
+      <input type="text" id="statement" placeholder="First eat, then play" autocomplete="off" />
+      <button class="go-btn" onclick="handleGo()">Go</button>
+    </div>
+    <div class="hint">Example: "First homework, then iPad" or "First brush teeth, then story"</div>
   </div>
-  <div class="hint">Example: "First homework, then iPad" or "First brush teeth, then story"</div>
+
+  <div class="recent" id="recentSection" style="display:none">
+    <h3>Recent</h3>
+    <div class="recent-list" id="recentList"></div>
+  </div>
+
+  <div class="attribution">
+    Pictograms by <a href="https://arasaac.org" target="_blank">ARASAAC</a> (CC BY-NC-SA 4.0)<br>
+    Additional images via <a href="http://www.mypecs.com" target="_blank">MyPECS.com</a>
+  </div>
 </div>
 
-<div class="board" id="board">
-  <div class="board-row">
-    <div class="card first" id="firstCard">
-      <div class="card-header">First</div>
-      <div class="card-body" id="firstBody">
+<!-- ===== FULLSCREEN BOARD ===== -->
+<div class="board-screen" id="boardScreen">
+  <button class="back-btn" onclick="resetBoard()" aria-label="Back">&#x2715;</button>
+
+  <div class="fs-arrow"><span>&#10148;</span></div>
+
+  <div class="board-layout">
+    <div class="fs-card first">
+      <div class="fs-card-header">First</div>
+      <div class="fs-card-body" id="firstBody">
         <div class="spinner" id="firstSpinner"></div>
         <img id="firstImg" style="display:none" alt="" />
-        <div class="no-img" id="firstNoImg" style="display:none">🖼️</div>
-        <div class="card-label" id="firstLabel"></div>
+        <div class="no-img" id="firstNoImg" style="display:none">&#128444;</div>
+        <div class="fs-card-label" id="firstLabel"></div>
         <a class="fallback-link" id="firstFallback" style="display:none" target="_blank" rel="noopener">Search on MyPECS</a>
-        <div class="upload-overlay">
-          <label class="upload-btn" title="Upload custom image">
-            📷
+        <div class="fs-upload-overlay">
+          <label class="fs-upload-btn" title="Upload custom image">
+            &#128247;
             <input type="file" accept="image/*" style="display:none" onchange="handleCustomImage(event, 'first')" />
           </label>
         </div>
       </div>
     </div>
 
-    <div class="arrow-col">➜</div>
-
-    <div class="card then" id="thenCard">
-      <div class="card-header">Then</div>
-      <div class="card-body" id="thenBody">
+    <div class="fs-card then">
+      <div class="fs-card-header">Then</div>
+      <div class="fs-card-body" id="thenBody">
         <div class="spinner" id="thenSpinner"></div>
         <img id="thenImg" style="display:none" alt="" />
-        <div class="no-img" id="thenNoImg" style="display:none">🖼️</div>
-        <div class="card-label" id="thenLabel"></div>
+        <div class="no-img" id="thenNoImg" style="display:none">&#128444;</div>
+        <div class="fs-card-label" id="thenLabel"></div>
         <a class="fallback-link" id="thenFallback" style="display:none" target="_blank" rel="noopener">Search on MyPECS</a>
-        <div class="upload-overlay">
-          <label class="upload-btn" title="Upload custom image">
-            📷
+        <div class="fs-upload-overlay">
+          <label class="fs-upload-btn" title="Upload custom image">
+            &#128247;
             <input type="file" accept="image/*" style="display:none" onchange="handleCustomImage(event, 'then')" />
           </label>
         </div>
       </div>
     </div>
   </div>
-
-  <button class="reset-btn" onclick="resetBoard()">New Board</button>
-</div>
-
-<div class="recent" id="recentSection" style="display:none">
-  <h3>Recent</h3>
-  <div class="recent-list" id="recentList"></div>
-</div>
-
-<div class="attribution">
-  Pictograms by <a href="https://arasaac.org" target="_blank">ARASAAC</a> (CC BY-NC-SA 4.0)<br>
-  Additional images via <a href="http://www.mypecs.com" target="_blank">MyPECS.com</a>
 </div>
 
 <script>
@@ -369,50 +452,21 @@
   const ARASAAC_IMG = 'https://static.arasaac.org/pictograms';
   const MYPECS_SEARCH = 'http://www.mypecs.com/Search.aspx';
 
-  // Common keyword mappings to improve ARASAAC search results
   const KEYWORD_MAP = {
-    'ipad': 'tablet',
-    'tablet': 'tablet',
-    'tv': 'television',
-    'potty': 'toilet',
-    'snack': 'eat',
-    'dinner': 'eat',
-    'lunch': 'eat',
-    'breakfast': 'eat',
-    'nap': 'sleep',
-    'bedtime': 'sleep',
-    'bath': 'bathtub',
-    'brush teeth': 'toothbrush',
-    'get dressed': 'clothes',
-    'shoes': 'shoe',
-    'coat': 'jacket',
-    'car': 'car',
-    'outside': 'park',
-    'recess': 'playground',
-    'gym': 'exercise',
-    'pe': 'exercise',
-    'circle time': 'circle',
-    'clean up': 'clean',
-    'tidy': 'clean',
-    'wait': 'wait',
-    'sit': 'chair',
-    'walk': 'walk',
-    'run': 'run',
-    'read': 'book',
-    'write': 'pencil',
-    'color': 'crayon',
-    'draw': 'draw',
-    'swim': 'swim',
-    'bike': 'bicycle',
-    'game': 'game',
-    'puzzle': 'puzzle',
-    'music': 'music',
-    'sing': 'sing',
-    'dance': 'dance',
-    'computer': 'computer',
-    'phone': 'telephone',
-    'homework': 'homework',
-    'work': 'work',
+    'ipad': 'tablet', 'tablet': 'tablet', 'tv': 'television',
+    'potty': 'toilet', 'snack': 'eat', 'dinner': 'eat',
+    'lunch': 'eat', 'breakfast': 'eat', 'nap': 'sleep',
+    'bedtime': 'sleep', 'bath': 'bathtub', 'brush teeth': 'toothbrush',
+    'get dressed': 'clothes', 'shoes': 'shoe', 'coat': 'jacket',
+    'car': 'car', 'outside': 'park', 'recess': 'playground',
+    'gym': 'exercise', 'pe': 'exercise', 'circle time': 'circle',
+    'clean up': 'clean', 'tidy': 'clean', 'wait': 'wait',
+    'sit': 'chair', 'walk': 'walk', 'run': 'run',
+    'read': 'book', 'write': 'pencil', 'color': 'crayon',
+    'draw': 'draw', 'swim': 'swim', 'bike': 'bicycle',
+    'game': 'game', 'puzzle': 'puzzle', 'music': 'music',
+    'sing': 'sing', 'dance': 'dance', 'computer': 'computer',
+    'phone': 'telephone', 'homework': 'homework', 'work': 'work',
     'quiet': 'silence'
   };
 
@@ -420,18 +474,11 @@
 
   function parseStatement(text) {
     text = text.trim().toLowerCase();
-    // Remove "first" prefix if present
     text = text.replace(/^first\s+/i, '');
-    // Split on "then" or comma
     const parts = text.split(/,?\s*then\s+/i);
-    if (parts.length === 2) {
-      return { first: parts[0].trim(), then: parts[1].trim() };
-    }
-    // Try comma split
+    if (parts.length === 2) return { first: parts[0].trim(), then: parts[1].trim() };
     const commaParts = text.split(',');
-    if (commaParts.length === 2) {
-      return { first: commaParts[0].trim(), then: commaParts[1].trim() };
-    }
+    if (commaParts.length === 2) return { first: commaParts[0].trim(), then: commaParts[1].trim() };
     return null;
   }
 
@@ -446,12 +493,8 @@
       const res = await fetch(`${ARASAAC_API}/en/search/${encodeURIComponent(resolved)}`);
       if (!res.ok) throw new Error('Not found');
       const data = await res.json();
-      if (data && data.length > 0) {
-        // Return the first result's ID
-        return data[0]._id;
-      }
+      if (data && data.length > 0) return data[0]._id;
     } catch (e) {
-      // Try original keyword if mapped keyword failed
       if (resolved !== keyword.toLowerCase().trim()) {
         try {
           const res = await fetch(`${ARASAAC_API}/en/search/${encodeURIComponent(keyword.trim())}`);
@@ -479,7 +522,6 @@
     const label = document.getElementById(`${side}Label`);
     const fallback = document.getElementById(`${side}Fallback`);
 
-    // Reset
     img.style.display = 'none';
     noImg.style.display = 'none';
     fallback.style.display = 'none';
@@ -487,7 +529,6 @@
     label.textContent = keyword;
 
     const pictoId = await searchArasaac(keyword);
-
     spinner.style.display = 'none';
 
     if (pictoId) {
@@ -516,7 +557,6 @@
       const noImg = document.getElementById(`${side}NoImg`);
       const fallback = document.getElementById(`${side}Fallback`);
       const spinner = document.getElementById(`${side}Spinner`);
-
       spinner.style.display = 'none';
       noImg.style.display = 'none';
       fallback.style.display = 'none';
@@ -537,16 +577,15 @@
       return;
     }
 
-    // Show board
-    document.getElementById('board').classList.add('visible');
+    // Switch to fullscreen board
+    document.getElementById('inputScreen').classList.add('hidden');
+    document.getElementById('boardScreen').classList.add('visible');
 
     // Save to recent
-    const entry = text;
-    recentSearches = recentSearches.filter(s => s.toLowerCase() !== entry.toLowerCase());
-    recentSearches.unshift(entry);
+    recentSearches = recentSearches.filter(s => s.toLowerCase() !== text.toLowerCase());
+    recentSearches.unshift(text);
     if (recentSearches.length > 8) recentSearches.pop();
     localStorage.setItem('ftb_recent', JSON.stringify(recentSearches));
-    renderRecent();
 
     // Populate both cards in parallel
     await Promise.all([
@@ -556,18 +595,17 @@
   }
 
   function resetBoard() {
-    document.getElementById('board').classList.remove('visible');
+    document.getElementById('boardScreen').classList.remove('visible');
+    document.getElementById('inputScreen').classList.remove('hidden');
     document.getElementById('statement').value = '';
     document.getElementById('statement').focus();
+    renderRecent();
   }
 
   function renderRecent() {
     const section = document.getElementById('recentSection');
     const list = document.getElementById('recentList');
-    if (recentSearches.length === 0) {
-      section.style.display = 'none';
-      return;
-    }
+    if (recentSearches.length === 0) { section.style.display = 'none'; return; }
     section.style.display = 'block';
     list.innerHTML = recentSearches.map(s =>
       `<div class="recent-chip" onclick="loadRecent('${s.replace(/'/g, "\\'")}')">${s}</div>`
@@ -579,12 +617,10 @@
     handleGo();
   }
 
-  // Enter key support
   document.getElementById('statement').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') handleGo();
   });
 
-  // Init
   renderRecent();
 </script>
 </body>
