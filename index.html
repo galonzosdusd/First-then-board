@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>First / Then Visual Board</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --blue: #2196F3;
+    --green: #4CAF50;
+    --bg: #f5f5f5;
+    --card-bg: #ffffff;
+    --shadow: 0 4px 16px rgba(0,0,0,0.10);
+    --radius: 18px;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    color: #222;
+  }
+
+  h1 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+
+  /* Input area */
+  .input-area {
+    width: 100%;
+    max-width: 520px;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 18px;
+    margin-bottom: 18px;
+  }
+
+  .input-area label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #555;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .input-area input[type="text"] {
+    flex: 1;
+    font-size: 1.1rem;
+    padding: 12px 14px;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .input-area input[type="text"]:focus {
+    border-color: var(--blue);
+  }
+
+  .input-area button {
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 12px;
+    background: var(--blue);
+    color: white;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+  }
+
+  .input-area button:active { background: #1976D2; }
+
+  .hint {
+    font-size: 0.78rem;
+    color: #999;
+    margin-top: 8px;
+  }
+
+  /* Board */
+  .board {
+    width: 100%;
+    max-width: 520px;
+    display: none;
+    gap: 12px;
+  }
+
+  .board.visible {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .board-row {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .card {
+    flex: 1;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    text-align: center;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border: 4px solid transparent;
+    transition: border-color 0.3s;
+  }
+
+  .card.first { border-color: var(--blue); }
+  .card.then  { border-color: var(--green); }
+
+  .card-header {
+    padding: 10px;
+    color: white;
+    font-size: 1.3rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .card.first .card-header { background: var(--blue); }
+  .card.then  .card-header { background: var(--green); }
+
+  .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 14px;
+    min-height: 180px;
+    position: relative;
+  }
+
+  .card-body img {
+    max-width: 100%;
+    max-height: 140px;
+    object-fit: contain;
+    border-radius: 8px;
+  }
+
+  .card-label {
+    margin-top: 10px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-transform: capitalize;
+  }
+
+  .card.first .card-label { color: var(--blue); }
+  .card.then  .card-label { color: var(--green); }
+
+  .arrow-col {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    color: #bbb;
+    min-width: 36px;
+    flex-shrink: 0;
+  }
+
+  /* Loading spinner */
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e0e0e0;
+    border-top: 4px solid var(--blue);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .no-img {
+    font-size: 3rem;
+    opacity: 0.3;
+  }
+
+  /* Fallback search link */
+  .fallback-link {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 0.72rem;
+    color: #999;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  /* Reset button */
+  .reset-btn {
+    margin-top: 16px;
+    padding: 12px 28px;
+    font-size: 1rem;
+    font-weight: 600;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    color: #555;
+    transition: all 0.2s;
+  }
+
+  .reset-btn:active { background: #eee; }
+
+  /* Recent searches */
+  .recent {
+    width: 100%;
+    max-width: 520px;
+    margin-top: 18px;
+  }
+
+  .recent h3 {
+    font-size: 0.82rem;
+    color: #999;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  .recent-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .recent-chip {
+    font-size: 0.82rem;
+    padding: 6px 14px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .recent-chip:active { background: #e3f2fd; }
+
+  /* Attribution */
+  .attribution {
+    margin-top: 24px;
+    font-size: 0.7rem;
+    color: #bbb;
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  .attribution a { color: #aaa; }
+
+  /* Custom image upload overlay */
+  .upload-overlay {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+  }
+
+  .upload-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid #ddd;
+    background: #f9f9f9;
+    cursor: pointer;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    transition: all 0.2s;
+  }
+
+  .upload-btn:hover { background: #e3f2fd; color: var(--blue); }
+
+  /* Responsive */
+  @media (max-width: 400px) {
+    .card-body { min-height: 140px; padding: 10px; }
+    .card-body img { max-height: 100px; }
+    .card-label { font-size: 1rem; }
+    .card-header { font-size: 1.1rem; }
+    .arrow-col { font-size: 1.8rem; min-width: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>First / Then Board</h1>
+
+<div class="input-area">
+  <label for="statement">Type your statement:</label>
+  <div class="input-row">
+    <input type="text" id="statement" placeholder="First eat, then play" autocomplete="off" />
+    <button id="goBtn" onclick="handleGo()">Go</button>
+  </div>
+  <div class="hint">Example: "First homework, then iPad" or "First brush teeth, then story"</div>
+</div>
+
+<div class="board" id="board">
+  <div class="board-row">
+    <div class="card first" id="firstCard">
+      <div class="card-header">First</div>
+      <div class="card-body" id="firstBody">
+        <div class="spinner" id="firstSpinner"></div>
+        <img id="firstImg" style="display:none" alt="" />
+        <div class="no-img" id="firstNoImg" style="display:none">🖼️</div>
+        <div class="card-label" id="firstLabel"></div>
+        <a class="fallback-link" id="firstFallback" style="display:none" target="_blank" rel="noopener">Search on MyPECS</a>
+        <div class="upload-overlay">
+          <label class="upload-btn" title="Upload custom image">
+            📷
+            <input type="file" accept="image/*" style="display:none" onchange="handleCustomImage(event, 'first')" />
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow-col">➜</div>
+
+    <div class="card then" id="thenCard">
+      <div class="card-header">Then</div>
+      <div class="card-body" id="thenBody">
+        <div class="spinner" id="thenSpinner"></div>
+        <img id="thenImg" style="display:none" alt="" />
+        <div class="no-img" id="thenNoImg" style="display:none">🖼️</div>
+        <div class="card-label" id="thenLabel"></div>
+        <a class="fallback-link" id="thenFallback" style="display:none" target="_blank" rel="noopener">Search on MyPECS</a>
+        <div class="upload-overlay">
+          <label class="upload-btn" title="Upload custom image">
+            📷
+            <input type="file" accept="image/*" style="display:none" onchange="handleCustomImage(event, 'then')" />
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="reset-btn" onclick="resetBoard()">New Board</button>
+</div>
+
+<div class="recent" id="recentSection" style="display:none">
+  <h3>Recent</h3>
+  <div class="recent-list" id="recentList"></div>
+</div>
+
+<div class="attribution">
+  Pictograms by <a href="https://arasaac.org" target="_blank">ARASAAC</a> (CC BY-NC-SA 4.0)<br>
+  Additional images via <a href="http://www.mypecs.com" target="_blank">MyPECS.com</a>
+</div>
+
+<script>
+  const ARASAAC_API = 'https://api.arasaac.org/v1/pictograms';
+  const ARASAAC_IMG = 'https://static.arasaac.org/pictograms';
+  const MYPECS_SEARCH = 'http://www.mypecs.com/Search.aspx';
+
+  // Common keyword mappings to improve ARASAAC search results
+  const KEYWORD_MAP = {
+    'ipad': 'tablet',
+    'tablet': 'tablet',
+    'tv': 'television',
+    'potty': 'toilet',
+    'snack': 'eat',
+    'dinner': 'eat',
+    'lunch': 'eat',
+    'breakfast': 'eat',
+    'nap': 'sleep',
+    'bedtime': 'sleep',
+    'bath': 'bathtub',
+    'brush teeth': 'toothbrush',
+    'get dressed': 'clothes',
+    'shoes': 'shoe',
+    'coat': 'jacket',
+    'car': 'car',
+    'outside': 'park',
+    'recess': 'playground',
+    'gym': 'exercise',
+    'pe': 'exercise',
+    'circle time': 'circle',
+    'clean up': 'clean',
+    'tidy': 'clean',
+    'wait': 'wait',
+    'sit': 'chair',
+    'walk': 'walk',
+    'run': 'run',
+    'read': 'book',
+    'write': 'pencil',
+    'color': 'crayon',
+    'draw': 'draw',
+    'swim': 'swim',
+    'bike': 'bicycle',
+    'game': 'game',
+    'puzzle': 'puzzle',
+    'music': 'music',
+    'sing': 'sing',
+    'dance': 'dance',
+    'computer': 'computer',
+    'phone': 'telephone',
+    'homework': 'homework',
+    'work': 'work',
+    'quiet': 'silence'
+  };
+
+  let recentSearches = JSON.parse(localStorage.getItem('ftb_recent') || '[]');
+
+  function parseStatement(text) {
+    text = text.trim().toLowerCase();
+    // Remove "first" prefix if present
+    text = text.replace(/^first\s+/i, '');
+    // Split on "then" or comma
+    const parts = text.split(/,?\s*then\s+/i);
+    if (parts.length === 2) {
+      return { first: parts[0].trim(), then: parts[1].trim() };
+    }
+    // Try comma split
+    const commaParts = text.split(',');
+    if (commaParts.length === 2) {
+      return { first: commaParts[0].trim(), then: commaParts[1].trim() };
+    }
+    return null;
+  }
+
+  function resolveKeyword(word) {
+    const lower = word.toLowerCase().trim();
+    return KEYWORD_MAP[lower] || lower;
+  }
+
+  async function searchArasaac(keyword) {
+    const resolved = resolveKeyword(keyword);
+    try {
+      const res = await fetch(`${ARASAAC_API}/en/search/${encodeURIComponent(resolved)}`);
+      if (!res.ok) throw new Error('Not found');
+      const data = await res.json();
+      if (data && data.length > 0) {
+        // Return the first result's ID
+        return data[0]._id;
+      }
+    } catch (e) {
+      // Try original keyword if mapped keyword failed
+      if (resolved !== keyword.toLowerCase().trim()) {
+        try {
+          const res = await fetch(`${ARASAAC_API}/en/search/${encodeURIComponent(keyword.trim())}`);
+          if (!res.ok) throw new Error('Not found');
+          const data = await res.json();
+          if (data && data.length > 0) return data[0]._id;
+        } catch (e2) {}
+      }
+    }
+    return null;
+  }
+
+  function getImageUrl(pictoId) {
+    return `${ARASAAC_IMG}/${pictoId}/${pictoId}_500.png`;
+  }
+
+  function getMypecsSearchUrl(keyword) {
+    return `${MYPECS_SEARCH}?q=${encodeURIComponent(keyword)}`;
+  }
+
+  async function populateCard(side, keyword) {
+    const img = document.getElementById(`${side}Img`);
+    const spinner = document.getElementById(`${side}Spinner`);
+    const noImg = document.getElementById(`${side}NoImg`);
+    const label = document.getElementById(`${side}Label`);
+    const fallback = document.getElementById(`${side}Fallback`);
+
+    // Reset
+    img.style.display = 'none';
+    noImg.style.display = 'none';
+    fallback.style.display = 'none';
+    spinner.style.display = 'block';
+    label.textContent = keyword;
+
+    const pictoId = await searchArasaac(keyword);
+
+    spinner.style.display = 'none';
+
+    if (pictoId) {
+      img.src = getImageUrl(pictoId);
+      img.alt = keyword;
+      img.style.display = 'block';
+      img.onerror = function() {
+        img.style.display = 'none';
+        noImg.style.display = 'block';
+        fallback.href = getMypecsSearchUrl(keyword);
+        fallback.style.display = 'inline-block';
+      };
+    } else {
+      noImg.style.display = 'block';
+      fallback.href = getMypecsSearchUrl(keyword);
+      fallback.style.display = 'inline-block';
+    }
+  }
+
+  function handleCustomImage(event, side) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = document.getElementById(`${side}Img`);
+      const noImg = document.getElementById(`${side}NoImg`);
+      const fallback = document.getElementById(`${side}Fallback`);
+      const spinner = document.getElementById(`${side}Spinner`);
+
+      spinner.style.display = 'none';
+      noImg.style.display = 'none';
+      fallback.style.display = 'none';
+      img.src = e.target.result;
+      img.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function handleGo() {
+    const input = document.getElementById('statement');
+    const text = input.value.trim();
+    if (!text) return;
+
+    const parsed = parseStatement(text);
+    if (!parsed) {
+      alert('Please use the format: "First [activity], then [activity]"\nExample: "First eat, then play"');
+      return;
+    }
+
+    // Show board
+    document.getElementById('board').classList.add('visible');
+
+    // Save to recent
+    const entry = text;
+    recentSearches = recentSearches.filter(s => s.toLowerCase() !== entry.toLowerCase());
+    recentSearches.unshift(entry);
+    if (recentSearches.length > 8) recentSearches.pop();
+    localStorage.setItem('ftb_recent', JSON.stringify(recentSearches));
+    renderRecent();
+
+    // Populate both cards in parallel
+    await Promise.all([
+      populateCard('first', parsed.first),
+      populateCard('then', parsed.then)
+    ]);
+  }
+
+  function resetBoard() {
+    document.getElementById('board').classList.remove('visible');
+    document.getElementById('statement').value = '';
+    document.getElementById('statement').focus();
+  }
+
+  function renderRecent() {
+    const section = document.getElementById('recentSection');
+    const list = document.getElementById('recentList');
+    if (recentSearches.length === 0) {
+      section.style.display = 'none';
+      return;
+    }
+    section.style.display = 'block';
+    list.innerHTML = recentSearches.map(s =>
+      `<div class="recent-chip" onclick="loadRecent('${s.replace(/'/g, "\\'")}')">${s}</div>`
+    ).join('');
+  }
+
+  function loadRecent(text) {
+    document.getElementById('statement').value = text;
+    handleGo();
+  }
+
+  // Enter key support
+  document.getElementById('statement').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') handleGo();
+  });
+
+  // Init
+  renderRecent();
+</script>
+</body>
+</html>
